@@ -11,6 +11,13 @@ import 'package:flutter/material.dart';
 /// The type of behavior of this widget.
 enum ExpandableFabType { fan, up, left }
 
+/// The size of the Floating Action Button.
+enum ExpandableFabSizeType {
+  regular,
+  small,
+  large,
+}
+
 /// Style of the overlay.
 @immutable
 class ExpandableFabOverlayStyle {
@@ -89,6 +96,7 @@ class ExpandableFab extends StatefulWidget {
     this.onOpen,
     this.onClose,
     this.overlayStyle,
+    this.size = ExpandableFabSizeType.small,
   }) : super(key: key);
 
   /// Distance from children.
@@ -132,6 +140,9 @@ class ExpandableFab extends StatefulWidget {
 
   /// Provides the style for overlay. No overlay when null.
   final ExpandableFabOverlayStyle? overlayStyle;
+
+  /// The size of the Floating Action Button.
+  final ExpandableFabSizeType size;
 
   @override
   State<ExpandableFab> createState() => ExpandableFabState();
@@ -265,13 +276,32 @@ class ExpandableFabState extends State<ExpandableFab>
 
   Widget _buildTapToCloseFab() {
     final style = widget.closeButtonStyle;
-    return FloatingActionButton.small(
-      heroTag: null,
-      foregroundColor: style.foregroundColor,
-      backgroundColor: style.backgroundColor,
-      onPressed: toggle,
-      child: style.child,
-    );
+    switch (widget.size) {
+      case ExpandableFabSizeType.small:
+        return FloatingActionButton.small(
+          heroTag: null,
+          foregroundColor: style.foregroundColor,
+          backgroundColor: style.backgroundColor,
+          onPressed: toggle,
+          child: style.child,
+        );
+      case ExpandableFabSizeType.large:
+        return FloatingActionButton.large(
+          heroTag: null,
+          foregroundColor: style.foregroundColor,
+          backgroundColor: style.backgroundColor,
+          onPressed: toggle,
+          child: style.child,
+        );
+      case ExpandableFabSizeType.regular:
+        return FloatingActionButton(
+          heroTag: null,
+          foregroundColor: style.foregroundColor,
+          backgroundColor: style.backgroundColor,
+          onPressed: toggle,
+          child: style.child,
+        );
+    }
   }
 
   List<Widget> _buildExpandingActionButtons(Offset offset) {
@@ -309,6 +339,49 @@ class ExpandableFabState extends State<ExpandableFab>
 
   Widget _buildTapToOpenFab() {
     final duration = widget.duration;
+
+    Widget fab;
+    switch (widget.size) {
+      case ExpandableFabSizeType.small:
+        fab = FloatingActionButton.small(
+          heroTag: null,
+          foregroundColor: widget.foregroundColor,
+          backgroundColor: widget.backgroundColor,
+          onPressed: toggle,
+          child: AnimatedRotation(
+            duration: duration,
+            turns: _open ? -0.5 : 0,
+            child: widget.child,
+          ),
+        );
+        break;
+      case ExpandableFabSizeType.large:
+        fab = FloatingActionButton.large(
+          heroTag: null,
+          foregroundColor: widget.foregroundColor,
+          backgroundColor: widget.backgroundColor,
+          onPressed: toggle,
+          child: AnimatedRotation(
+            duration: duration,
+            turns: _open ? -0.5 : 0,
+            child: widget.child,
+          ),
+        );
+        break;
+      case ExpandableFabSizeType.regular:
+        fab = FloatingActionButton(
+          heroTag: null,
+          foregroundColor: widget.foregroundColor,
+          backgroundColor: widget.backgroundColor,
+          onPressed: toggle,
+          child: AnimatedRotation(
+            duration: duration,
+            turns: _open ? -0.5 : 0,
+            child: widget.child,
+          ),
+        );
+        break;
+    }
     return IgnorePointer(
       ignoring: _open,
       child: AnimatedContainer(
@@ -324,17 +397,7 @@ class ExpandableFabState extends State<ExpandableFab>
           opacity: _open ? 0.0 : 1.0,
           curve: const Interval(0.25, 1.0, curve: Curves.easeInOut),
           duration: duration,
-          child: FloatingActionButton(
-            heroTag: null,
-            foregroundColor: widget.foregroundColor,
-            backgroundColor: widget.backgroundColor,
-            onPressed: toggle,
-            child: AnimatedRotation(
-              duration: duration,
-              turns: _open ? -0.5 : 0,
-              child: widget.child,
-            ),
-          ),
+          child: fab,
         ),
       ),
     );
